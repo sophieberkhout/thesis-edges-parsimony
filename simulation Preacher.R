@@ -54,13 +54,13 @@ LL_alt2     <- preacher(models = alt2)
 
 # a is red, b is blue
 
-plot(ecdf(LL_degree$full), main="ECDF Degree", xlab = "LL", ylab="")
+plot(ecdf(LL_degree$full), main="ECDF Random Data Degree", xlab = "LL", ylab="")
 lines(ecdf(LL_degree$a), col = "red")
 lines(ecdf(LL_degree$b), col = "blue")
-legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"), 
+legend(-1300, .4, legend=c("Model A", "Model B",  "Full Model"), 
        col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
 
-plot(ecdf(LL_close$full), main="ECDF Closeness", xlab = "LL", ylab="")
+plot(ecdf(LL_close$full), main="ECDF Random Data Closeness", xlab = "LL", ylab="")
 lines(ecdf(LL_close$a), col = "red")
 lines(ecdf(LL_close$b), col = "blue")
 legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"), 
@@ -69,7 +69,7 @@ legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"),
 
 # a should be more flexible than b
 # red should be to right of blue
-plot(ecdf(LL_between$full), main="ECDF Betweenness", xlab = "LL", ylab="")
+plot(ecdf(LL_between$full), main="ECDF Random Data Betweenness", xlab = "LL", ylab="")
 lines(ecdf(LL_between$a), col = "red")
 lines(ecdf(LL_between$b), col = "blue")
 legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"), 
@@ -83,10 +83,10 @@ legend(-1380, .4, legend=c("Model A", "Model B",  "Full Model"),
 
 # a should be les flexible than b
 # blue should be to right of red
-plot(ecdf(LL_alt$full), main="ECDF Alternative Paths", xlab = "LL", ylab="")
+plot(ecdf(LL_alt$full), main="ECDF Random Data Alternative Paths", xlab = "LL", ylab="")
 lines(ecdf(LL_alt$a), col = "red")
 lines(ecdf(LL_alt$b), col = "blue")
-legend(-1380, .4, legend=c("Model A", "Model B",  "Full Model"), 
+legend(-800, .4, legend=c("Model A", "Model B",  "Full Model"), 
        col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
 
 plot(ecdf(LL_alt2$full))

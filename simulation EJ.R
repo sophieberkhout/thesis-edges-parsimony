@@ -5,7 +5,7 @@ between_half <- getnw("between", half = T)
 alt_half     <- getnw("alt", half = T)
 
 nedges_degree   <- 11-1
-nedges_close    <- 12-1
+nedges_close    <- 9-1
 nedges_between  <- 8-1
 nedges_alt      <- 8-1
 
@@ -54,6 +54,25 @@ xlim <- c(min(fitdif_degree$a_b, fitdif_degree$b_a), max(fitdif_degree$a_b, fitd
 plot(hista_degree, col=rgb(1,0,0,.5), xlim = xlim)
 plot(histb_degree, col=rgb(0,0,1,.5), add=T)
 
+plot(ecdf(fitdif_degree$a_b), main="ECDF Model Mimicry Degree", xlab = "LL", ylab="", col = "red")
+lines(ecdf(fitdif_degree$b_a), col = "blue")
+legend(15, .4, legend=c("Model A is true", "Model B is true"), 
+       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+
+plot(ecdf(fitdif_close$a_b), main="ECDF Model Mimicry Closeness", xlab = "LL", ylab="", col = "red")
+lines(ecdf(fitdif_close$b_a), col = "blue")
+legend(5, .4, legend=c("Model A is true", "Model B is true"), 
+       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+
+plot(ecdf(fitdif_between$a_b), main="ECDF Model Mimicry Betweenness", xlab = "LL", ylab="", col = "red")
+lines(ecdf(fitdif_between$b_a), col = "blue")
+legend(28, .4, legend=c("Model A is true", "Model B is true"), 
+       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+
+plot(ecdf(fitdif_alt$a_b), main="ECDF Model Mimicry Alternative Paths", xlab = "LL", ylab="", col = "red")
+lines(ecdf(fitdif_alt$b_a), col = "blue")
+legend(6, .4, legend=c("Model A is true", "Model B is true"), 
+       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
 
 hista_close <- hist(fitdif_close$a_b)
 histb_close <- hist(fitdif_close$b_a)
