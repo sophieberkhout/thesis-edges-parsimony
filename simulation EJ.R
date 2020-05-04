@@ -1,94 +1,124 @@
-### EJ
+library("MASS")
+library("dplyr")
+library("bootnet")
+library("psychonetrics")
+library("ggplot2")
+source("nw function.R")
+source("myplot.R")
+
+# ------ Create (half) network matrices ------ #
 degree_half  <- getnw("degree", half = T)
 close_half   <- getnw("close", half = T)
 between_half <- getnw("between", half = T)
 alt_half     <- getnw("alt", half = T)
 
+degree2_half  <- getnw("degree2", half = T)
+close2_half   <- getnw("close2", half = T)
+between2_half <- getnw("between2", half = T)
+alt2_half     <- getnw("alt2", half = T)
+# ------------------------------------------- #
+
+# ------ Number of edges in models ------ #
 nedges_degree   <- 11-1
 nedges_close    <- 9-1
 nedges_between  <- 8-1
 nedges_alt      <- 8-1
 
+nedges_degree2   <- 8-1
+nedges_close2    <- 9-1
+nedges_between2  <- 9-1
+nedges_alt2      <- 9-1
+# --------------------------------------- #
+
+# ------ Create model mimicry simulation ------ #
 mimicry <- function(models, nedges, niter = 1000, nobs = 100){
   
+  # Create empty data frame
   fitdif <- data.frame(a_b = numeric(),
                        b_a = numeric())
 
   for(i in 1:niter){
-    edgevals <- runif(nedges, 0.1, .5)
     
-    models$a[which(models$a==1)] <- edgevals
+    # Get random edge values between .1 and .5
+    edgevals <- runif(nedges, .1, .5) 
+    
+    # Get the location of the edges in the network matrix
+    # The edge that is different for the models is placed last
+    loc_a <- c(which(models$a==1 & models$a==models$b), 
+               which(models$a==1 & models$a!=models$b))
+    
+    loc_b <- c(which(models$b==1 & models$b==models$a),
+               which(models$b==1 & models$b!=models$a))
+    
+    # Fill model a with the edge values and mirror the matrix
+    models$a[loc_a] <- edgevals
     models$a[lower.tri(models$a)] <- t(models$a)[lower.tri(models$a)]
     
-    models$b[which(models$b==1)] <- edgevals
+    # Fill model b with the edge values and mirror the matrix
+    models$b[loc_b] <- edgevals
     models$b[lower.tri(models$b)] <- t(models$b)[lower.tri(models$b)]
     
+    # Generate data from both models
     data_a <- ggmGenerator()(nobs, models$a)
     data_b <- ggmGenerator()(nobs, models$b)
     
+    # Fit both models on data from model a
     fit_a_a <- ggm(data_a, omega = models$a) %>% runmodel
     fit_a_b <- ggm(data_a, omega = models$b) %>% runmodel
     
+    # Get the difference in fit (model a - model b)
     fitdif[i, "a_b"] <- fit(fit_a_a)[1, 2] - fit(fit_a_b)[1, 2]
     
+    # Fit both models on data from model b
     fit_b_a <- ggm(data_b, omega = models$a) %>% runmodel
     fit_b_b <- ggm(data_b, omega = models$b) %>% runmodel
     
+    # Get the difference in fit (model b - model a)
     fitdif[i, "b_a"] <- fit(fit_b_b)[1, 2] - fit(fit_b_a)[1, 2]
   }
   
-  return(fitdif)
+  # Make data frame long format for ggplot
+  fitdif <- tidyr::gather(fitdif, model, fit)
   
+  return(fitdif)
 }
+# ---------------------------------------------- #
 
-fitdif_degree <- mimicry(models = degree_half, nedges = nedges_degree)
-fitdif_close  <- mimicry(models = close_half, nedges = nedges_close)
-fitdif_between  <- mimicry(models = between_half, nedges = nedges_between)
-fitdif_alt  <- mimicry(models = alt_half, nedges = nedges_alt)
+# ------ Run mimicry method ------ #
+fitdif_degree   <- mimicry(models = degree_half, 
+                           nedges = nedges_degree)
+
+fitdif_close    <- mimicry(models = close_half, 
+                           nedges = nedges_close)
+
+fitdif_between  <- mimicry(models = between_half, 
+                           nedges = nedges_between)
+
+fitdif_alt      <- mimicry(models = alt_half, 
+                           nedges = nedges_alt)
 
 
+fitdif_degree2  <- mimicry(models = degree2_half, 
+                           nedges = nedges_degree2)
 
-hista_degree <- hist(fitdif_degree$a_b)
-histb_degree <- hist(fitdif_degree$b_a)
-xlim <- c(min(fitdif_degree$a_b, fitdif_degree$b_a), max(fitdif_degree$a_b, fitdif_degree$b_a))
-plot(hista_degree, col=rgb(1,0,0,.5), xlim = xlim)
-plot(histb_degree, col=rgb(0,0,1,.5), add=T)
+fitdif_close2   <- mimicry(models = close2_half, 
+                           nedges = nedges_close2)
 
-plot(ecdf(fitdif_degree$a_b), main="ECDF Model Mimicry Degree", xlab = "LL", ylab="", col = "red")
-lines(ecdf(fitdif_degree$b_a), col = "blue")
-legend(15, .4, legend=c("Model A is true", "Model B is true"), 
-       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+fitdif_between2 <- mimicry(models = between2_half, 
+                           nedges = nedges_between2)
 
-plot(ecdf(fitdif_close$a_b), main="ECDF Model Mimicry Closeness", xlab = "LL", ylab="", col = "red")
-lines(ecdf(fitdif_close$b_a), col = "blue")
-legend(5, .4, legend=c("Model A is true", "Model B is true"), 
-       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+fitdif_alt2     <- mimicry(models = alt2_half, 
+                           nedges = nedges_alt2)
+# -------------------------------- #
 
-plot(ecdf(fitdif_between$a_b), main="ECDF Model Mimicry Betweenness", xlab = "LL", ylab="", col = "red")
-lines(ecdf(fitdif_between$b_a), col = "blue")
-legend(28, .4, legend=c("Model A is true", "Model B is true"), 
-       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
+# ------- Plot ECDFs of the differences ------ #
+myplot(fitdif_degree)
+myplot(fitdif_close)
+myplot(fitdif_between)
+myplot(fitdif_alt)
 
-plot(ecdf(fitdif_alt$a_b), main="ECDF Model Mimicry Alternative Paths", xlab = "LL", ylab="", col = "red")
-lines(ecdf(fitdif_alt$b_a), col = "blue")
-legend(6, .4, legend=c("Model A is true", "Model B is true"), 
-       col = c("red", "blue"), lty = rep(1, 2), box.lty = 0)
-
-hista_close <- hist(fitdif_close$a_b)
-histb_close <- hist(fitdif_close$b_a)
-xlim <- c(min(fitdif_close$a_b, fitdif_close$b_a), max(fitdif_close$a_b, fitdif_close$b_a))
-plot(hista_close, col=rgb(1,0,0,.5), xlim=xlim)
-plot(histb_close, col=rgb(0,0,1,.5), xlim=xlim, add=T)
-
-hista_between <- hist(fitdif_between$a_b)
-histb_between <- hist(fitdif_between$b_a)
-xlim <- c(min(fitdif_between$a_b, fitdif_between$b_a), max(fitdif_between$a_b, fitdif_between$b_a))
-plot(hista_between, col=rgb(1,0,0,.5), xlim=xlim)
-plot(histb_between, col=rgb(0,0,1,.5), xlim=xlim, add=T)
-
-hista_alt <- hist(fitdif_alt$a_b)
-histb_alt <- hist(fitdif_alt$b_a)
-xlim <- c(min(fitdif_alt$a_b, fitdif_alt$b_a), max(fitdif_alt$a_b, fitdif_alt$b_a))
-plot(hista_alt, col=rgb(1,0,0,.5), xlim=xlim)
-plot(histb_alt, col=rgb(0,0,1,.5), xlim=xlim, add=T)
-
+myplot(fitdif_degree2)
+myplot(fitdif_close2)
+myplot(fitdif_between2)
+myplot(fitdif_alt2)
+# ------------------------------------------- #

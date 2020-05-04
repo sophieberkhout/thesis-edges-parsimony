@@ -1,96 +1,86 @@
-# library("MASS")
+library("MASS")
 library("dplyr")
 library("bootnet")
 library("psychonetrics")
+library("ggplot2")
+source("nw function.R")
+source("myplot.R")
 
 # ------ Create network matrices ------ #
 degree  <- getnw("degree")
-
 close   <- getnw("close")
-close2   <- getnw("close2")
-
 between <- getnw("between")
-between2 <- getnw("between2")
-
 alt     <- getnw("alt")
+
+degree2  <- getnw("degree2")
+close2   <- getnw("close2")
+between2 <- getnw("between2")
 alt2     <- getnw("alt2")
+# ------------------------------------ #
 
-# ------------------------------------#
-
-
+# ------ Create Preacher simulation ------ #
 preacher <- function(models, niter = 1000, nobs = 100){
   
+  # Get the dimension of the network matrix
   dim <- nrow(models$full)
   
+  # Create empty data frame
   LLs <- data.frame(full = numeric(),
                     a = numeric(),
                     b = numeric())
   
   for(i in 1:niter){
-    covmat <- crossprod(matrix(runif(dim^2, -1 ,1), dim))
+    # Create positive-definite covariance matrix
+    covmat <- crossprod(matrix(runif(dim^2, -1, 1), dim))
     
-    mod_full  <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$full) %>% runmodel
-    mod_a     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$a) %>% runmodel
-    mod_b     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$b) %>% runmodel
+    # Make correlation matrix from covariance matrix
+    # And generate data from that matrix with means of 0.
+    cormat <- cov2cor(covmat)
+    dat <- mvrnorm(nobs, rep(0, dim), cormat)
+
+    # Fit the models on the data
+    mod_full  <- ggm(data = dat, omega = models$full) %>% runmodel
+    mod_a     <- ggm(data = dat, omega = models$a) %>% runmodel
+    mod_b     <- ggm(data = dat, omega = models$b) %>% runmodel
     
+    # Fit the models on the covariance matrix
+    # mod_full  <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$full) %>% runmodel
+    # mod_a     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$a) %>% runmodel
+    # mod_b     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$b) %>% runmodel
+
+    # Fill the data frame with the LL values
     LLs[i, "full"]  <- fit(mod_full)[1, 2]
     LLs[i, "a"]     <- fit(mod_a)[1, 2]
     LLs[i, "b"]     <- fit(mod_b)[1, 2]
-    
+
   }
   
+  # Make data frame long format for ggplot
+  LLs <- tidyr::gather(LLs, model, fit)
   return(LLs)
+  
 }
 
+# ------ Run Preacher method ------ #
 LL_degree  <- preacher(models = degree)
 LL_close   <- preacher(models = close)
 LL_between <- preacher(models = between)
 LL_alt     <- preacher(models = alt)
 
+LL_degree2  <- preacher(models = degree2)
 LL_close2   <- preacher(models = close2)
 LL_between2 <- preacher(models = between2)
 LL_alt2     <- preacher(models = alt2)
+# ------------------------------------ #
 
+# ------ Plot ECDFs ------ #
+myplot(LL_degree)
+myplot(LL_close)
+myplot(LL_between)
+myplot(LL_alt)
 
-# a is red, b is blue
-
-plot(ecdf(LL_degree$full), main="ECDF Random Data Degree", xlab = "LL", ylab="")
-lines(ecdf(LL_degree$a), col = "red")
-lines(ecdf(LL_degree$b), col = "blue")
-legend(-1300, .4, legend=c("Model A", "Model B",  "Full Model"), 
-       col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
-
-plot(ecdf(LL_close$full), main="ECDF Random Data Closeness", xlab = "LL", ylab="")
-lines(ecdf(LL_close$a), col = "red")
-lines(ecdf(LL_close$b), col = "blue")
-legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"), 
-       col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
-
-
-# a should be more flexible than b
-# red should be to right of blue
-plot(ecdf(LL_between$full), main="ECDF Random Data Betweenness", xlab = "LL", ylab="")
-lines(ecdf(LL_between$a), col = "red")
-lines(ecdf(LL_between$b), col = "blue")
-legend(-1100, .4, legend=c("Model A", "Model B",  "Full Model"), 
-       col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
-
-plot(ecdf(LL_between2$full), main="ECDF Betweenness New", xlab = "LL", ylab="")
-lines(ecdf(LL_between2$a), col = "red")
-lines(ecdf(LL_between2$b), col = "blue")
-legend(-1380, .4, legend=c("Model A", "Model B",  "Full Model"), 
-       col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
-
-# a should be les flexible than b
-# blue should be to right of red
-plot(ecdf(LL_alt$full), main="ECDF Random Data Alternative Paths", xlab = "LL", ylab="")
-lines(ecdf(LL_alt$a), col = "red")
-lines(ecdf(LL_alt$b), col = "blue")
-legend(-800, .4, legend=c("Model A", "Model B",  "Full Model"), 
-       col = c("red", "blue", "black"), lty = rep(1, 3), box.lty = 0)
-
-plot(ecdf(LL_alt2$full))
-lines(ecdf(LL_alt2$a), col = "red")
-lines(ecdf(LL_alt2$b), col = "blue")
-
-
+myplot(LL_degree2)
+myplot(LL_close2)
+myplot(LL_between2)
+myplot(LL_alt2)
+# ------------------------------------ #
