@@ -25,9 +25,9 @@ preacher <- function(models, niter = 1000, nobs = 100){
   dim <- nrow(models$full)
   
   # Create empty data frame
-  LLs <- data.frame(full = numeric(),
-                    a = numeric(),
-                    b = numeric())
+  LLs <- data.frame(Full = numeric(),
+                    A = numeric(),
+                    B = numeric())
   
   for(i in 1:niter){
     # Create positive-definite covariance matrix
@@ -35,28 +35,28 @@ preacher <- function(models, niter = 1000, nobs = 100){
     
     # Make correlation matrix from covariance matrix
     # And generate data from that matrix with means of 0.
-    cormat <- cov2cor(covmat)
-    dat <- mvrnorm(nobs, rep(0, dim), cormat)
+    # cormat <- cov2cor(covmat)
+    # dat <- mvrnorm(nobs, rep(0, dim), cormat)
 
     # Fit the models on the data
-    mod_full  <- ggm(data = dat, omega = models$full) %>% runmodel
-    mod_a     <- ggm(data = dat, omega = models$a) %>% runmodel
-    mod_b     <- ggm(data = dat, omega = models$b) %>% runmodel
+    # mod_full  <- ggm(data = dat, omega = models$full) %>% runmodel
+    # mod_a     <- ggm(data = dat, omega = models$a) %>% runmodel
+    # mod_b     <- ggm(data = dat, omega = models$b) %>% runmodel
     
     # Fit the models on the covariance matrix
-    # mod_full  <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$full) %>% runmodel
-    # mod_a     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$a) %>% runmodel
-    # mod_b     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$b) %>% runmodel
+    mod_full  <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$full) %>% runmodel
+    mod_a     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$a) %>% runmodel
+    mod_b     <- ggm(covs = covmat, nobs = nobs, covtype = "ML", omega = models$b) %>% runmodel
 
     # Fill the data frame with the LL values
-    LLs[i, "full"]  <- fit(mod_full)[1, 2]
-    LLs[i, "a"]     <- fit(mod_a)[1, 2]
-    LLs[i, "b"]     <- fit(mod_b)[1, 2]
+    LLs[i, "Full"]  <- fit(mod_full)[1, 2]
+    LLs[i, "A"]     <- fit(mod_a)[1, 2]
+    LLs[i, "B"]     <- fit(mod_b)[1, 2]
 
   }
   
   # Make data frame long format for ggplot
-  LLs <- tidyr::gather(LLs, model, fit)
+  LLs <- tidyr::gather(LLs, Model, Fit)
   return(LLs)
   
 }

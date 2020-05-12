@@ -34,8 +34,8 @@ nedges_alt2      <- 9-1
 mimicry <- function(models, nedges, niter = 1000, nobs = 100){
   
   # Create empty data frame
-  fitdif <- data.frame(a_b = numeric(),
-                       b_a = numeric())
+  fitdif <- data.frame(A = numeric(),
+                       B = numeric())
 
   for(i in 1:niter){
     
@@ -63,22 +63,32 @@ mimicry <- function(models, nedges, niter = 1000, nobs = 100){
     data_b <- ggmGenerator()(nobs, models$b)
     
     # Fit both models on data from model a
-    fit_a_a <- ggm(data_a, omega = models$a) %>% runmodel
-    fit_a_b <- ggm(data_a, omega = models$b) %>% runmodel
+    fit_Aa <- ggm(data_a, omega = models$a) 
+    fit_Ba <- ggm(data_a, omega = models$b) 
+    
+    # Need to find a way to make the edges fixed.
+    
+    pars_Aa <- parameters(fit_Aa)
+    pars_Aa <- pars_Aa[pars_Aa$matrix == "omega" & pars_Aa$fixed == F, c("row", "col")]
+    
+    pars_Ba <- parameters(fit_Ba)
+    pars_Ba <- pars_Ba[pars_Ba$matrix == "omega" & pars_Ba$fixed == F, c("row", "col")]
+    
+    
     
     # Get the difference in fit (model a - model b)
-    fitdif[i, "a_b"] <- fit(fit_a_a)[1, 2] - fit(fit_a_b)[1, 2]
+    fitdif[i, "A"] <- fit(fit_Ba)[1, 2] - fit(fit_Aa)[1, 2]
     
     # Fit both models on data from model b
-    fit_b_a <- ggm(data_b, omega = models$a) %>% runmodel
-    fit_b_b <- ggm(data_b, omega = models$b) %>% runmodel
+    fit_Ab <- ggm(data_b, omega = models$a) %>% runmodel
+    fit_Bb <- ggm(data_b, omega = models$b) %>% runmodel
     
     # Get the difference in fit (model b - model a)
-    fitdif[i, "b_a"] <- fit(fit_b_b)[1, 2] - fit(fit_b_a)[1, 2]
+    fitdif[i, "B"] <- fit(fit_Ab)[1, 2] - fit(fit_Bb)[1, 2]
   }
   
   # Make data frame long format for ggplot
-  fitdif <- tidyr::gather(fitdif, model, fit)
+  fitdif <- tidyr::gather(fitdif, Model, Fit)
   
   return(fitdif)
 }
@@ -113,7 +123,7 @@ fitdif_alt2     <- mimicry(models = alt2_half,
 
 # ------- Plot ECDFs of the differences ------ #
 myplot(fitdif_degree)
-myplot(fitdif_close)
+myplot(fitdif_close, xlab = expression(Delta*LL))
 myplot(fitdif_between)
 myplot(fitdif_alt)
 
