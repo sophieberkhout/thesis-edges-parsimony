@@ -39,6 +39,8 @@ mimicry <- function(models, nedges, niter = 1000, nobs = 100){
 
   for(i in 1:niter){
     
+    dim <- nrow(models$full)
+    
     # Get random edge values between .1 and .5
     edgevals <- runif(nedges, .1, .5) 
     
@@ -50,31 +52,29 @@ mimicry <- function(models, nedges, niter = 1000, nobs = 100){
     loc_b <- c(which(models$b==1 & models$b==models$a),
                which(models$b==1 & models$b!=models$a))
     
-    # Fill model a with the edge values and mirror the matrix
-    models$a[loc_a] <- edgevals
+    # Fill network  a with the edge values and mirror the matrix
+    net_a <- models$a
+    net_a[loc_a] <- edgevals
+    net_a[lower.tri(net_a)] <- t(net_a)[lower.tri(net_a)]
+    diag(net_a) <- 1
+    
     models$a[lower.tri(models$a)] <- t(models$a)[lower.tri(models$a)]
+
+    # Fill network b with the edge values and mirror the matrix
+    net_b <- models$b
+    net_b[loc_b] <- edgevals
+    net_b[lower.tri(net_b)] <- t(net_b)[lower.tri(net_b)]
+    diag(net_b) <- 1
     
-    # Fill model b with the edge values and mirror the matrix
-    models$b[loc_b] <- edgevals
     models$b[lower.tri(models$b)] <- t(models$b)[lower.tri(models$b)]
-    
-    # Generate data from both models
-    data_a <- ggmGenerator()(nobs, models$a)
-    data_b <- ggmGenerator()(nobs, models$b)
+
+    # Generate data from both networks
+    data_a <- mvrnorm(nobs, rep(0, dim), net_a)
+    data_b <- mvrnorm(nobs, rep(0, dim), net_b)
     
     # Fit both models on data from model a
-    fit_Aa <- ggm(data_a, omega = models$a) 
-    fit_Ba <- ggm(data_a, omega = models$b) 
-    
-    # Need to find a way to make the edges fixed.
-    
-    pars_Aa <- parameters(fit_Aa)
-    pars_Aa <- pars_Aa[pars_Aa$matrix == "omega" & pars_Aa$fixed == F, c("row", "col")]
-    
-    pars_Ba <- parameters(fit_Ba)
-    pars_Ba <- pars_Ba[pars_Ba$matrix == "omega" & pars_Ba$fixed == F, c("row", "col")]
-    
-    
+    fit_Aa <- ggm(data_a, omega = models$a) %>% runmodel
+    fit_Ba <- ggm(data_a, omega = models$b) %>% runmodel
     
     # Get the difference in fit (model a - model b)
     fitdif[i, "A"] <- fit(fit_Ba)[1, 2] - fit(fit_Aa)[1, 2]
@@ -123,7 +123,7 @@ fitdif_alt2     <- mimicry(models = alt2_half,
 
 # ------- Plot ECDFs of the differences ------ #
 myplot(fitdif_degree)
-myplot(fitdif_close, xlab = expression(Delta*LL))
+myplot(fitdif_close)
 myplot(fitdif_between)
 myplot(fitdif_alt)
 

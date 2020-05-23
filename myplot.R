@@ -5,7 +5,7 @@ myplot <- function(df, title = "", type = "preacher"){
   }
   if(type == "mimicry"){
     cols <- c("red", "blue")
-    xlab <- xlab = expression(Delta*LL)
+    xlab <- expression(Delta*LL)
   }
    
   ggplot(df, aes(x = Fit, colour = Model)) + 
