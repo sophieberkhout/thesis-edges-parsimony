@@ -37,12 +37,13 @@ mimicry <- function(models, nedges, niter = 1000, nobs = 100){
   fitdif <- data.frame(A = numeric(),
                        B = numeric())
 
+  dim <- nrow(models$full)
+  
   for(i in 1:niter){
     
-    dim <- nrow(models$full)
     
     # Get random edge values between .1 and .5
-    edgevals <- runif(nedges, .1, .5) 
+    edgevals <- runif(nedges, .1, .4) 
     
     # Get the location of the edges in the network matrix
     # The edge that is different for the models is placed last
@@ -122,13 +123,13 @@ fitdif_alt2     <- mimicry(models = alt2_half,
 # -------------------------------- #
 
 # ------- Plot ECDFs of the differences ------ #
-myplot(fitdif_degree)
-myplot(fitdif_close)
-myplot(fitdif_between)
-myplot(fitdif_alt)
+myplot(fitdif_degree, type = "mimicry")
+myplot(fitdif_close, type = "mimicry")
+myplot(fitdif_between, type = "mimicry")
+myplot(fitdif_alt, type = "mimicry")
 
-myplot(fitdif_degree2)
-myplot(fitdif_close2)
-myplot(fitdif_between2)
-myplot(fitdif_alt2)
+myplot(fitdif_degree2, type = "mimicry")
+myplot(fitdif_close2, type = "mimicry")
+myplot(fitdif_between2, type = "mimicry")
+myplot(fitdif_alt2, type = "mimicry")
 # ------------------------------------------- #

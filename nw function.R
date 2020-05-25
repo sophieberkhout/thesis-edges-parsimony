@@ -77,17 +77,17 @@ getnw <- function(type, half = FALSE){
   }
   
   if(type == "close2"){
-    nw <- matrix(0, 8, 8)
-    nw[1, 2] <- nw[2, 3] <- 
+    nw <- matrix(0, 7, 7)
+    nw[1, 5] <- nw[2, 3] <- nw[2, 5] <-
       nw[2, 6] <- nw[3, 4] <- nw[3, 7] <-
-      nw[4, 8] <- nw[5, 6] <-  
-      nw[6, 7] <- nw[7, 8] <- 1
+      nw[5, 6] <-  nw[4,7] <-
+      nw[6, 7] <- 1
     
     nw_a <- nw
-    nw_a[2, 6] <- 0
+    nw_a[3, 7] <- 0
     
     nw_b <- nw
-    nw_b[3, 7] <- 0
+    nw_b[2, 6] <- 0
   }
   
   if(type == "between2"){
