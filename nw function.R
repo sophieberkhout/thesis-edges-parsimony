@@ -104,23 +104,9 @@ getnw <- function(type, half = FALSE){
     nw_b <- nw
     nw_b[2, 6] <- 0
   }
-  
+
+    
   if(type == "alt2"){
-    nw <- matrix(0,6,6)
-    nw[1, 2] <- nw[1, 4] <- 
-      nw[1, 5] <- nw[2, 3] <- 
-      nw[2, 5] <- nw[2, 6] <- 
-      nw[3, 5] <- nw[3, 6] <- 
-      nw[5, 6] <- 1
-    
-    nw_a <- nw
-    nw_a[2, 6] <- 0
-    
-    nw_b <- nw
-    nw_b[2, 3] <- 0
-  }
-    
-  if(type == "alt3"){
     nw <- matrix(0,6,6)
     nw[1, 4] <- nw[2, 3] <-
       nw[2, 4] <- nw[2, 5] <- 
