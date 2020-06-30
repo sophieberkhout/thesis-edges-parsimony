@@ -119,6 +119,20 @@ getnw <- function(type, half = FALSE){
     nw_b <- nw
     nw_b[2, 3] <- 0
   }
+    
+  if(type == "alt3"){
+    nw <- matrix(0,6,6)
+    nw[1, 4] <- nw[2, 3] <-
+      nw[2, 4] <- nw[2, 5] <- 
+      nw[3, 5] <- nw[3, 6] <- 
+      nw[4, 5] <- nw[5, 6] <- 1
+    
+    nw_a <- nw
+    nw_a[4, 5] <- 0
+    
+    nw_b <- nw
+    nw_b[2, 5] <- 0
+  }
 
 # For the Preacher method we need the full matrices.
 # For the mimicry method we need half the matrices.
